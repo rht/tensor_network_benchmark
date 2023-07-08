@@ -2,6 +2,7 @@ import time
 
 import networkx as nx
 import numpy as np
+from cuquantum import cutensornet as cutn
 from qiskit import QuantumCircuit
 
 import common_tn
@@ -147,3 +148,4 @@ for i, num_qubits in enumerate(n_list):
 #    print("Running with opt_einsum")
 #    for i in range(2):
 #        out = run_with_oe(pe, {pe.qubits[0]: "Z"})
+cutn.destroy(common_tn.handle)
