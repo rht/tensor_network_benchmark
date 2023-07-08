@@ -83,7 +83,7 @@ def run_with_cutn(circuit, pauli_string):
     output = contract(
         expression,
         *operands,
-        optimize={"path": path, **optimize_options},
+        optimize={"path": path, "slicing": info.slices},
         options=options,
     )
     stop_event.record()
