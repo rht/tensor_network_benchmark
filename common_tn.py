@@ -77,7 +77,7 @@ def run_with_cutn(circuit, pauli_string):
     monitor.start()
     start_event.record()
     path, info = contract_path(
-        expression, *operands, options=options, optimize=optimize_options
+        expression, *operands, options=options, # optimize=optimize_options
     )
 
     output = contract(
