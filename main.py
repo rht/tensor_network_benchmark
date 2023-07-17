@@ -9,12 +9,7 @@ import circuits
 np.random.seed(1)
 
 
-# QAOA ansatz
-from deqart_internal.circuit_converter import qiskit_to_cirq
-import qsimcirq
-
 np.random.seed(42)
-simulator = qsimcirq.QSimSimulator()
 
 
 def run_multiple_methods(
@@ -27,6 +22,7 @@ def run_multiple_methods(
     enable_cusv=False,
     enable_mps=False,
 ):
+    output = {}
     # pauli_string = {qubits[0]: "Z", qubits[1]: "Z"}
     pauli_string = {qubits[10]: "Z"}
     repeat_count = 2 if index == 0 else 1
@@ -34,39 +30,33 @@ def run_multiple_methods(
         print("Running with opt_einsum")
         # Run twice in the beginning to warm the GPU.
         for i in range(repeat_count):
-            out = common_tn.run_with_oe(circuit, pauli_string)
+            out, elapsed = common_tn.run_with_oe(circuit, pauli_string)
         print("Output opt_einsum", out)
+        output["oe"] = elapsed
 
     if enable_ctg:
         print("Running with ctg")
         # Run twice in the beginning to warm the GPU.
         for i in range(repeat_count):
-            out = common_tn.run_with_ctg(circuit, pauli_string)
+            out, elapsed = common_tn.run_with_ctg(circuit, pauli_string)
         print("Output ctg", out)
+        output["ctg"] = elapsed
 
     if enable_cutn:
         print("Running with cutn")
-        out = common_tn.run_with_cutn(circuit, pauli_string)
+        out, elapsed = common_tn.run_with_cutn(circuit, pauli_string)
         print("Output cutn", out)
+        output["cutn"] = elapsed
 
     # cusv
     if enable_cusv:
         print("Running with cusv")
-        circuit_cirq, _, _ = qiskit_to_cirq(circuit)
-        monitor = common_tn.MemoryMonitor()
-        monitor.start()
-        tic = time.time()
-        simulator.simulate(circuit_cirq)
-        print("Elapsed cusv", round(time.time() - tic, 3))
-        monitor.stop()
+        elapsed = common_tn.run_with_cusv(circuit)
+        output["cusv"] = elapsed
 
     if enable_mps:
-        monitor = common_tn.MemoryMonitor()
-        monitor.start()
-        tic = time.time()
-        common_tn.run_circuit_mps(circuit)
-        print("Elapsed MPS", round(time.time() - tic, 3))
-        monitor.stop()
+        elapsed = common_tn.run_with_mps(circuit)
+        output["mps"] = elapsed
 
 
 # import initialize_rqc
@@ -74,12 +64,14 @@ def run_multiple_methods(
 # exit()
 
 n_list = [22, 24, 30, 32]
+n_list = [12]
 for i, num_qubits in enumerate(n_list):
     print(num_qubits)
-    ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
-    # ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, high_entanglement=True)
-
-    run_multiple_methods(ansatz, qubits, index=i, enable_cutn=1, enable_cusv=0, enable_mps=0)
+    # ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
+    ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, high_entanglement=True)
+    run_multiple_methods(
+        ansatz, qubits, index=i, enable_cutn=1, enable_cusv=0, enable_mps=1
+    )
     print()
 
 cutn.destroy(common_tn.handle)

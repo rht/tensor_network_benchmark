@@ -3,6 +3,7 @@ import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import TwoLocal, RealAmplitudes
 
+
 def qaoa_ansatz(num_qubits, reps):
     qc = QuantumCircuit(num_qubits)
     qubits = qc.qubits
@@ -58,6 +59,8 @@ def make_vqe_QAOA_ansatz(num_qubits, high_entanglement=False):
 
 # QPE
 import qiskit.circuit.library as qcl
+
+
 def prepare_A_circuit_for_qiskit(nqubits):
     from qiskit.opflow import X, Z
 

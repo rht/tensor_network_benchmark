@@ -3,11 +3,16 @@ import threading
 import time
 
 import cupy
+import qsimcirq
 from cuquantum import cutensornet as cutn
 from cuquantum import contract, contract_path
 from cuquantum import CircuitToEinsum
+from qiskit import QuantumCircuit
+
+from deqart_internal.circuit_converter import qiskit_to_cirq
 
 
+simulator = qsimcirq.QSimSimulator()
 handle = cutn.create()
 start_event = cupy.cuda.stream.Event()
 stop_event = cupy.cuda.stream.Event()
@@ -77,7 +82,9 @@ def run_with_cutn(circuit, pauli_string):
     monitor.start()
     start_event.record()
     path, info = contract_path(
-        expression, *operands, options=options, # optimize=optimize_options
+        expression,
+        *operands,
+        options=options,  # optimize=optimize_options
     )
 
     output = contract(
@@ -91,12 +98,14 @@ def run_with_cutn(circuit, pauli_string):
     monitor.stop()
     # In seconds
     elapsed = cupy.cuda.get_elapsed_time(start_event, stop_event) / 1e3
-    print("Elapsed cutn", round(elapsed, 3))
-    return output.get()
+    elapsed = round(elapsed, 3)
+    print("Elapsed cutn", elapsed)
+    return output.get(), elapsed
 
 
 def run_with_oe(circuit, pauli_string):
     import opt_einsum as oe
+
     myconverter = CircuitToEinsum(circuit, backend=cupy)
     expression, operands = myconverter.expectation(pauli_string, lightcone=True)
     monitor = MemoryMonitor()
@@ -112,13 +121,15 @@ def run_with_oe(circuit, pauli_string):
     )
     elapsed = time.time() - tic
     monitor.stop()
-    print("Elapsed oe", round(elapsed, 3))
-    return output
+    elapsed = round(elapsed, 3)
+    print("Elapsed oe", elapsed)
+    return output, elapsed
 
 
 def run_with_ctg(circuit, pauli_string):
     import opt_einsum as oe
     import cotengra as ctg
+
     myconverter = CircuitToEinsum(circuit, backend=cupy)
     expression, operands = myconverter.expectation(pauli_string, lightcone=True)
     monitor = MemoryMonitor()
@@ -136,8 +147,9 @@ def run_with_ctg(circuit, pauli_string):
     output = oe.contract(expression, *operands, optimize=path)
     elapsed = time.time() - tic
     monitor.stop()
-    print("Elapsed oe", round(elapsed, 3))
-    return output
+    elapsed = round(elapsed, 3)
+    print("Elapsed oe", elapsed)
+    return output, elapsed
 
 
 from qiskit import transpile
@@ -151,6 +163,10 @@ def run_circuit_mps(qc):
     shots = 4000
     # shots = 0
     qct = transpile(qc, backend)
+    # qct = QuantumCircuit(qc.num_qubits, 1)
+    # qct.append(qct_without_measure.to_instruction(), range(qc.num_qubits))
+    # qct.measure(0, 0)
+    qct.measure_all()
     print(
         f"\ngoing for qubits: {len(qc.qubits)}\t gates: {len(qct.data)} depth: {qct.depth()}\t "
     )
@@ -165,10 +181,32 @@ def run_circuit_mps(qc):
     # print("max memory mb", result._metadata["metadata"]["max_memory_mb"])
     # print("max gpu memory mb", result._metadata["metadata"]["max_gpu_memory_mb"])
 
-    print(result.get_counts())
+    # print(result.get_counts())
 
     # sv = result.get_statevector()
     # pauli_op = PauliSumOp.from_list(["Z", 1.0])
     # expectation = pauli_op.expectation_value(Statevector(sv))
     # print(expectation)
     return time_taken_execute
+
+
+def run_with_mps(qc):
+    # run_circuit_mps but with memory monitor
+    monitor = common_tn.MemoryMonitor()
+    monitor.start()
+    tic = time.time()
+    common_tn.run_circuit_mps(circuit)
+    print("Elapsed MPS", round(time.time() - tic, 3))
+    monitor.stop()
+
+
+def run_with_cusv(circuit):
+    circuit_cirq, _, _ = qiskit_to_cirq(circuit)
+    monitor = MemoryMonitor()
+    monitor.start()
+    tic = time.time()
+    simulator.simulate(circuit_cirq)
+    elapsed = round(time.time() - tic, 3)
+    print("Elapsed cusv", elapsed)
+    monitor.stop()
+    return elapsed
