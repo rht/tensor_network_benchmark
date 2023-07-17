@@ -25,6 +25,7 @@ def run_multiple_methods(
     enable_ctg=False,
     enable_cutn=False,
     enable_cusv=False,
+    enable_mps=False,
 ):
     # pauli_string = {qubits[0]: "Z", qubits[1]: "Z"}
     pauli_string = {qubits[10]: "Z"}
@@ -59,6 +60,14 @@ def run_multiple_methods(
         print("Elapsed cusv", round(time.time() - tic, 3))
         monitor.stop()
 
+    if enable_mps:
+        monitor = common_tn.MemoryMonitor()
+        monitor.start()
+        tic = time.time()
+        common_tn.run_circuit_mps(circuit)
+        print("Elapsed MPS", round(time.time() - tic, 3))
+        monitor.stop()
+
 
 # import initialize_rqc
 # run_multiple_methods(initialize_rqc.qc, initialize_rqc.qc.qubits)
@@ -70,7 +79,7 @@ for i, num_qubits in enumerate(n_list):
     ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
     # ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, high_entanglement=True)
 
-    run_multiple_methods(ansatz, qubits, index=i, enable_cutn=True)
+    run_multiple_methods(ansatz, qubits, index=i, enable_cutn=1, enable_cusv=0, enable_mps=0)
     print()
 
 cutn.destroy(common_tn.handle)
