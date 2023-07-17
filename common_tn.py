@@ -55,6 +55,7 @@ class MemoryMonitor:
 
 def run_with_cutn(circuit, pauli_string):
     # See https://docs.nvidia.com/cuda/cuquantum/latest/python/api/generated/cuquantum.contract_path.html?highlight=contract_path#cuquantum.contract_path
+    # https://docs.nvidia.com/cuda/cuquantum/latest/python/api/generated/cuquantum.contract.html#cuquantum.contract
     myconverter = CircuitToEinsum(circuit, backend=cupy)
     expression, operands = myconverter.expectation(pauli_string, lightcone=True)
     # expression, operands = myconverter.amplitude(bitstring="0" * circuit.num_qubits)
@@ -80,22 +81,33 @@ def run_with_cutn(circuit, pauli_string):
     }
     # It is recommended to use vanilla optimize options as much as possible.
     # Seed it for deterministic result
-    optimize_options = {"seed": 1}
+    seed = 1
     monitor = MemoryMonitor()
     monitor.start()
     start_event.record()
-    path, info = contract_path(
-        expression,
-        *operands,
-        options=options, optimize=optimize_options
-    )
+    if False:
+        # If we combine path finding and contraction into 1 function call.
+        output = contract(
+            expression,
+            *operands,
+            optimize={"seed": seed},
+            options=options,
+        )
+    else:
+        # Separate path finding and contraction step
+        optimize_options = {"seed": seed}
+        path, info = contract_path(
+            expression,
+            *operands,
+            options=options, optimize=optimize_options
+        )
 
-    output = contract(
-        expression,
-        *operands,
-        optimize={"path": path, "slicing": info.slices},
-        options=options,
-    )
+        output = contract(
+            expression,
+            *operands,
+            optimize={"path": path, "slicing": info.slices},
+            options=options,
+        )
     stop_event.record()
     stop_event.synchronize()
     monitor.stop()
