@@ -195,7 +195,7 @@ def run_with_mps(qc):
     monitor = MemoryMonitor()
     monitor.start()
     tic = time.time()
-    run_circuit_mps(circuit)
+    run_circuit_mps(qc)
     print("Elapsed MPS", round(time.time() - tic, 3))
     monitor.stop()
 
