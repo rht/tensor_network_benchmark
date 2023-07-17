@@ -165,11 +165,13 @@ def run_circuit_mps(qc):
     backend = backend_mps_local
     shots = 4000
     # shots = 0
-    qc_with_measure = QuantumCircuit(qc.num_qubits, 1)
-    qc_with_measure.append(qc.to_instruction(), range(qc.num_qubits))
-    qct = transpile(qc_with_measure, backend)
-    qct.measure(0, 0)
-    # qct.measure_all()
+    # qc_with_measure = QuantumCircuit(qc.num_qubits, 1)
+    # qc_with_measure.append(qc.to_instruction(), range(qc.num_qubits))
+    # qct = transpile(qc_with_measure, backend)
+    # qct.measure(0, 0)
+    # qct.measure_all seems to be much faster than the version above. TODO investigate why.
+    qct = transpile(qc, backend)
+    qct.measure_all()
     print(
         f"\ngoing for qubits: {len(qc.qubits)}\t gates: {len(qct.data)} depth: {qct.depth()}\t "
     )
