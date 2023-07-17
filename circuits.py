@@ -43,14 +43,14 @@ def qaoa_ansatz_with_cost_included(num_qubits):
     return qc, qc.qubits
 
 
-def make_vqe_QAOA_ansatz(num_qubits, high_entanglement=False):
-    if high_entanglement:
+def make_vqe_QAOA_ansatz(num_qubits, entanglement="linear", type="RealAmplitudes"):
+    if type == "RealAmplitudes":
         # Highly entangled ansatz
-        ansatz = RealAmplitudes(num_qubits, reps=5, entanglement="full")
+        ansatz = RealAmplitudes(num_qubits, reps=5, entanglement=entanglement)
     else:
         # TwoLocal is for QAOA ansatz
-        # ansatz = TwoLocal(num_qubits, "ry", "cz", reps=5, entanglement="linear")
-        ansatz = TwoLocal(num_qubits, "rz", "cx", reps=5, entanglement="linear")
+        # ansatz = TwoLocal(num_qubits, "ry", "cz", reps=5, entanglement=entanglement)
+        ansatz = TwoLocal(num_qubits, "rz", "cx", reps=5, entanglement=entanglement)
 
     ansatz = ansatz.bind_parameters(np.random.random(ansatz.num_parameters))
     qubits = ansatz.qubits
