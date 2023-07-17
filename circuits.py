@@ -1,7 +1,7 @@
 import networkx as nx
 import numpy as np
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import TwoLocal
+from qiskit.circuit.library import TwoLocal, RealAmplitudes
 
 def qaoa_ansatz(num_qubits, reps):
     qc = QuantumCircuit(num_qubits)
@@ -42,12 +42,15 @@ def qaoa_ansatz_with_cost_included(num_qubits):
     return qc, qc.qubits
 
 
-def make_vqe_QAOA_ansatz(num_qubits):
-    # TwoLocal is for QAOA ansatz
-    # ansatz = TwoLocal(num_qubits, "ry", "cz", reps=5, entanglement="linear")
-    ansatz = TwoLocal(num_qubits, "rz", "cx", reps=5, entanglement="linear")
-    # Highly entangled ansatz
-    # ansatz = RealAmplitudes(num_qubits, reps=5, entanglement="full")
+def make_vqe_QAOA_ansatz(num_qubits, high_entanglement=False):
+    if high_entanglement:
+        # Highly entangled ansatz
+        ansatz = RealAmplitudes(num_qubits, reps=5, entanglement="full")
+    else:
+        # TwoLocal is for QAOA ansatz
+        # ansatz = TwoLocal(num_qubits, "ry", "cz", reps=5, entanglement="linear")
+        ansatz = TwoLocal(num_qubits, "rz", "cx", reps=5, entanglement="linear")
+
     ansatz = ansatz.bind_parameters(np.random.random(ansatz.num_parameters))
     qubits = ansatz.qubits
     return ansatz, qubits

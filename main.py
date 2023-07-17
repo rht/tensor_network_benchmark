@@ -68,7 +68,7 @@ n_list = [22, 24, 30, 32]
 for i, num_qubits in enumerate(n_list):
     print(num_qubits)
     ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
-    # ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits)
+    # ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, high_entanglement=True)
 
     run_multiple_methods(ansatz, qubits, index=i, enable_cutn=True)
     print()
