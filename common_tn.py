@@ -54,6 +54,7 @@ class MemoryMonitor:
 
 
 def run_with_cutn(circuit, pauli_string):
+    # See https://docs.nvidia.com/cuda/cuquantum/latest/python/api/generated/cuquantum.contract_path.html?highlight=contract_path#cuquantum.contract_path
     myconverter = CircuitToEinsum(circuit, backend=cupy)
     expression, operands = myconverter.expectation(pauli_string, lightcone=True)
     # expression, operands = myconverter.amplitude(bitstring="0" * circuit.num_qubits)
@@ -77,14 +78,16 @@ def run_with_cutn(circuit, pauli_string):
             "num_leaves": 10,  # default is 8
         },
     }
-    # optimize_options = None
+    # It is recommended to use vanilla optimize options as much as possible.
+    # Seed it for deterministic result
+    optimize_options = {"seed": 1}
     monitor = MemoryMonitor()
     monitor.start()
     start_event.record()
     path, info = contract_path(
         expression,
         *operands,
-        options=options,  # optimize=optimize_options
+        options=options, optimize=optimize_options
     )
 
     output = contract(
@@ -162,11 +165,11 @@ def run_circuit_mps(qc):
     backend = backend_mps_local
     shots = 4000
     # shots = 0
-    qct = transpile(qc, backend)
-    # qct = QuantumCircuit(qc.num_qubits, 1)
-    # qct.append(qct_without_measure.to_instruction(), range(qc.num_qubits))
-    # qct.measure(0, 0)
-    qct.measure_all()
+    qc_with_measure = QuantumCircuit(qc.num_qubits, 1)
+    qc_with_measure.append(qc.to_instruction(), range(qc.num_qubits))
+    qct = transpile(qc_with_measure, backend)
+    qct.measure(0, 0)
+    # qct.measure_all()
     print(
         f"\ngoing for qubits: {len(qc.qubits)}\t gates: {len(qct.data)} depth: {qct.depth()}\t "
     )
