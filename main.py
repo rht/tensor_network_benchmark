@@ -64,6 +64,7 @@ def run_multiple_methods(
 # run_multiple_methods(initialize_rqc.qc, initialize_rqc.qc.qubits)
 # exit()
 
+
 def run_exp(exp_name):
     full_output = defaultdict(list)
     n_list = [22, 24, 30, 32]
@@ -75,19 +76,30 @@ def run_exp(exp_name):
     for i, num_qubits in enumerate(n_list):
         print(num_qubits)
         if exp_name == "vqe_realamplitudes_full":
-            ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, entanglement="full")
+            ansatz, qubits = circuits.make_vqe_QAOA_ansatz(
+                num_qubits, entanglement="full"
+            )
         elif exp_name == "vqe_realamplitudes_linear":
-            ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, entanglement="linear")
+            ansatz, qubits = circuits.make_vqe_QAOA_ansatz(
+                num_qubits, entanglement="linear"
+            )
         else:
             ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
         output = run_multiple_methods(
-            ansatz, qubits, index=i, enable_cutn=1, enable_cusv=1, enable_mps=1
+            ansatz,
+            qubits,
+            index=i,
+            enable_cutn=0,
+            enable_cusv=0,
+            enable_mps=0,
+            enable_oe=1,
         )
         for k, v in output.items():
             full_output[k].append(v)
         print()
     print(dict(full_output))
 
-# run_exp("vqe_realamplitudes_full")
-run_exp("vqe_realamplitudes_linear")
+
+run_exp("vqe_realamplitudes_full")
+# run_exp("vqe_realamplitudes_linear")
 cutn.destroy(common_tn.handle)

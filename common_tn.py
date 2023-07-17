@@ -97,9 +97,7 @@ def run_with_cutn(circuit, pauli_string):
         # Separate path finding and contraction step
         optimize_options = {"seed": seed}
         path, info = contract_path(
-            expression,
-            *operands,
-            options=options, optimize=optimize_options
+            expression, *operands, options=options, optimize=optimize_options
         )
 
         output = contract(
