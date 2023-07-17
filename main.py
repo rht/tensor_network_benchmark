@@ -32,7 +32,7 @@ def run_multiple_methods(
         for i in range(repeat_count):
             out, elapsed = common_tn.run_with_oe(circuit, pauli_string)
         print("Output opt_einsum", out)
-        output["oe"] = elapsed
+        output["opt_einsum"] = elapsed
 
     if enable_ctg:
         print("Running with ctg")
@@ -89,10 +89,10 @@ def run_exp(exp_name):
             ansatz,
             qubits,
             index=i,
-            enable_cutn=0,
+            enable_cutn=1,
             enable_cusv=0,
             enable_mps=0,
-            enable_oe=1,
+            enable_oe=0,
         )
         for k, v in output.items():
             full_output[k].append(v)
