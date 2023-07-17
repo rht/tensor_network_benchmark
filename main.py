@@ -1,4 +1,4 @@
-import time
+from collections import defaultdict
 
 import numpy as np
 from cuquantum import cutensornet as cutn
@@ -57,21 +57,32 @@ def run_multiple_methods(
     if enable_mps:
         elapsed = common_tn.run_with_mps(circuit)
         output["mps"] = elapsed
+    return output
 
 
 # import initialize_rqc
 # run_multiple_methods(initialize_rqc.qc, initialize_rqc.qc.qubits)
 # exit()
 
-n_list = [22, 24, 30, 32]
-n_list = [12]
-for i, num_qubits in enumerate(n_list):
-    print(num_qubits)
-    # ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
-    ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, high_entanglement=True)
-    run_multiple_methods(
-        ansatz, qubits, index=i, enable_cutn=1, enable_cusv=0, enable_mps=1
-    )
-    print()
+def run_exp(exp_name):
+    full_output = defaultdict(list)
+    n_list = [22, 24, 30, 32]
+    if exp_name == "vqe_qaoa_high_entanglement":
+        n_list = [12, 14, 20, 22]
 
+    for i, num_qubits in enumerate(n_list):
+        print(num_qubits)
+        if exp_name == "vqe_qaoa_high_entanglement":
+            ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, high_entanglement=True)
+        else:
+            ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
+        output = run_multiple_methods(
+            ansatz, qubits, index=i, enable_cutn=1, enable_cusv=0, enable_mps=1
+        )
+        for k, v in output.items():
+            full_output[k].append(v)
+        print()
+    print(dict(full_output))
+
+run_exp("vqe_qaoa_high_entanglement")
 cutn.destroy(common_tn.handle)
