@@ -127,11 +127,16 @@ def run_with_oe(circuit, pauli_string):
     # path, path_info = oe.contract_path(expression, *operands, memory_limit=10e9)
     memory_limit = "max_input"
     # memory_limit = None
-    path, path_info = oe.contract_path(expression, *operands, memory_limit=memory_limit)
-    print(path_info)
-    output = oe.contract(
-        expression, *operands, optimize=path, memory_limit=memory_limit
-    )
+    if True:
+        output = oe.contract(
+            expression, *operands
+        )
+    else:
+        # Separate path finding and contraction
+        path, path_info = oe.contract_path(expression, *operands, memory_limit=memory_limit)
+        output = oe.contract(
+            expression, *operands, optimize=path, memory_limit=memory_limit
+        )
     elapsed = time.time() - tic
     monitor.stop()
     elapsed = round(elapsed, 3)
