@@ -24,7 +24,9 @@ def run_multiple_methods(
 ):
     output = {}
     # pauli_string = {qubits[0]: "Z", qubits[1]: "Z"}
-    pauli_string = {qubits[10]: "Z"}
+    idx = 10 if len(qubits) > 10 else 0
+    pauli_string = {qubits[idx]: "Z"}
+
     repeat_count = 2 if index == 0 else 1
     if enable_oe:
         print("Running with opt_einsum")
@@ -67,11 +69,17 @@ def run_multiple_methods(
 
 def run_exp(exp_name):
     full_output = defaultdict(list)
-    n_list = [22, 24, 30, 32]
+    n_list = None
     if exp_name == "vqe_realamplitudes_full":
         n_list = [12, 14, 20, 22]
     elif exp_name == "vqe_realamplitudes_linear":
         n_list = [12, 14, 20, 22]
+    elif exp_name == "vqe_QAOA":
+        n_list = [14, 18, 22, 26, 30]
+    elif exp_name == "QPE":
+        n_list = [2, 5, 10, 11]
+    elif exp_name == "alexeev":
+        n_list = [22, 24, 30, 32]
 
     for i, num_qubits in enumerate(n_list):
         print(num_qubits)
@@ -85,6 +93,11 @@ def run_exp(exp_name):
             )
         elif exp_name == "vqe_QAOA":
             ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, ansatz_type="TwoLocal")
+        elif exp_name == "QPE":
+            ansatz = circuits.make_QPE(num_qubits)
+            qubits = ansatz.qubits
+        elif exp_name == "alexeev":
+            ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
         else:
             ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
         output = run_multiple_methods(
@@ -99,10 +112,14 @@ def run_exp(exp_name):
         for k, v in output.items():
             full_output[k].append(v)
         print()
-    print(dict(full_output))
+    full_output = {"elapsed": dict(full_output)}
+    full_output["qubits"] = n_list
+    print(full_output)
 
 
 # run_exp("vqe_realamplitudes_full")
 # run_exp("vqe_realamplitudes_linear")
-run_exp("vqe_QAOA")
+# run_exp("vqe_QAOA")
+# run_exp("QPE")
+run_exp("alexeev")
 cutn.destroy(common_tn.handle)
