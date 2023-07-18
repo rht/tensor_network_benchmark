@@ -13,7 +13,8 @@ np.random.seed(42)
 # exit()
 
 
-def run_exp(exp_name, mps_measure_1qubit=False):
+def run_exp(exp_name, mps_measure_1qubit=True):
+    print("exp", exp_name)
     full_output = defaultdict(list)
     n_list = None
     if exp_name == "vqe_realamplitudes_full":
@@ -52,7 +53,7 @@ def run_exp(exp_name, mps_measure_1qubit=False):
             index=i,
             enable_cutn=1,
             enable_cusv=0,
-            enable_mps=0,
+            enable_mps=1,
             enable_oe=0,
             mps_measure_1qubit=mps_measure_1qubit,
         )
@@ -64,9 +65,9 @@ def run_exp(exp_name, mps_measure_1qubit=False):
     print(full_output)
 
 
-# run_exp("vqe_realamplitudes_full")
-run_exp("vqe_realamplitudes_linear", mps_measure_1qubit=1)
+# run_exp("vqe_realamplitudes_full", mps_measure_1qubit=1)
+# run_exp("vqe_realamplitudes_linear")
 # run_exp("vqe_QAOA")
 # run_exp("QPE")
-# run_exp("alexeev")
+run_exp("alexeev")
 cutn.destroy(common_tn.handle)

@@ -239,7 +239,7 @@ def run_multiple_methods(
     enable_cutn=False,
     enable_cusv=False,
     enable_mps=False,
-    mps_measure_1qubit=False,
+    mps_measure_1qubit=True,
 ):
     output = {}
     # pauli_string = {qubits[0]: "Z", qubits[1]: "Z"}
