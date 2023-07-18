@@ -83,6 +83,8 @@ def run_exp(exp_name):
             ansatz, qubits = circuits.make_vqe_QAOA_ansatz(
                 num_qubits, entanglement="linear"
             )
+        elif exp_name == "vqe_QAOA":
+            ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, ansatz_type="TwoLocal")
         else:
             ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
         output = run_multiple_methods(
@@ -100,6 +102,7 @@ def run_exp(exp_name):
     print(dict(full_output))
 
 
-run_exp("vqe_realamplitudes_full")
+# run_exp("vqe_realamplitudes_full")
 # run_exp("vqe_realamplitudes_linear")
+run_exp("vqe_QAOA")
 cutn.destroy(common_tn.handle)
