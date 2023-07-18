@@ -180,13 +180,9 @@ def run_circuit_mps(qc):
     backend = backend_mps_local
     shots = 4000
     # shots = 0
-    # qc_with_measure = QuantumCircuit(qc.num_qubits, 1)
-    # qc_with_measure.append(qc.to_instruction(), range(qc.num_qubits))
-    # qct = transpile(qc_with_measure, backend)
-    # qct.measure(0, 0)
-    # qct.measure_all seems to be much faster than the version above. TODO investigate why.
+    # Sometimes, qct.measure_all seems to be much faster than measuring just
+    # 1 qubit. TODO investigate why.
     qct = transpile(qc, backend)
-    qct.measure_all()
     print(
         f"\ngoing for qubits: {len(qc.qubits)}\t gates: {len(qct.data)} depth: {qct.depth()}\t "
     )
@@ -243,6 +239,7 @@ def run_multiple_methods(
     enable_cutn=False,
     enable_cusv=False,
     enable_mps=False,
+    mps_measure_1qubit=False,
 ):
     output = {}
     # pauli_string = {qubits[0]: "Z", qubits[1]: "Z"}
@@ -279,6 +276,12 @@ def run_multiple_methods(
         output["cusv"] = elapsed
 
     if enable_mps:
-        elapsed = run_with_mps(circuit)
+        if mps_measure_1qubit:
+            new_circuit = QuantumCircuit(circuit.num_qubits, 1)
+            new_circuit.measure(idx, 0)
+        else:
+            new_circuit = circuit
+            new_circuit.measure_all()
+        elapsed = run_with_mps(new_circuit)
         output["mps"] = elapsed
     return output

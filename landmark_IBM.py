@@ -376,6 +376,7 @@ if 1:
             enable_cusv=0,
             enable_mps=1,
             enable_oe=1,
+            mps_measure_1qubit=True,
         )
         for k, v in output.items():
             full_output[k].append(v)
