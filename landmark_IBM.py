@@ -374,13 +374,14 @@ if 1:
             index=i,
             enable_cutn=1,
             enable_cusv=0,
-            enable_mps=0,
-            enable_oe=0,
+            enable_mps=1,
+            enable_oe=1,
         )
         for k, v in output.items():
             full_output[k].append(v)
     full_output = {"elapsed": dict(full_output)}
     full_output["theta_hs"] = theta_hs
+    print(full_output)
 
 
 if False:
