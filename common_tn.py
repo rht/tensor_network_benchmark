@@ -7,7 +7,7 @@ import qsimcirq
 from cuquantum import cutensornet as cutn
 from cuquantum import contract, contract_path
 from cuquantum import CircuitToEinsum
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, ClassicalRegister
 
 from deqart_internal.circuit_converter import qiskit_to_cirq
 
@@ -277,11 +277,11 @@ def run_multiple_methods(
 
     if enable_mps:
         if mps_measure_1qubit:
-            new_circuit = QuantumCircuit(circuit.num_qubits, 1)
-            new_circuit.measure(idx, 0)
+            cr = ClassicalRegister(1)
+            circuit.add_register(cr)
+            circuit.measure(idx, 0)
         else:
-            new_circuit = circuit
-            new_circuit.measure_all()
-        elapsed = run_with_mps(new_circuit)
+            circuit.measure_all()
+        elapsed = run_with_mps(circuit)
         output["mps"] = elapsed
     return output
