@@ -16,6 +16,11 @@ simulator = qsimcirq.QSimSimulator()
 handle = cutn.create()
 start_event = cupy.cuda.stream.Event()
 stop_event = cupy.cuda.stream.Event()
+mempool = cupy.get_default_memory_pool()
+
+
+def get_cupy_memory():
+    return cupy.cuda.Device().mem_info[0]
 
 
 def get_gpu_memory():
@@ -59,10 +64,13 @@ def run_with_cutn(circuit, pauli_string):
     myconverter = CircuitToEinsum(circuit, backend=cupy)
     expression, operands = myconverter.expectation(pauli_string, lightcone=True)
     # expression, operands = myconverter.amplitude(bitstring="0" * circuit.num_qubits)
+    available_memory = get_cupy_memory()
+    print("Available_memory", round(available_memory / 1e9, 3), "GB")
     options = {
         "handle": handle,
         "blocking": "auto",
-        "memory_limit": "80%",
+        "memory_limit": 0.8 * available_memory,
+        # "memory_limit": "80%",
     }
     optimize_options = {
         "samples": 5,  # default is 0 (disabled)
@@ -129,7 +137,7 @@ def run_with_oe(circuit, pauli_string):
     # memory_limit = None
     if True:
         output = oe.contract(
-            expression, *operands
+            expression, *operands, memory_limit=memory_limit
         )
     else:
         # Separate path finding and contraction
@@ -253,6 +261,9 @@ def run_multiple_methods(
         for i in range(repeat_count):
             out, elapsed = run_with_oe(circuit, pauli_string)
         print("Output opt_einsum", out)
+        # Important: We must free the GPU memory allocation
+        del out
+        mempool.free_all_blocks()
         output["opt_einsum"] = elapsed
 
     if enable_ctg:
@@ -261,18 +272,26 @@ def run_multiple_methods(
         for i in range(repeat_count):
             out, elapsed = run_with_ctg(circuit, pauli_string)
         print("Output ctg", out)
+        # Important: We must free the GPU memory allocation
+        del out
+        mempool.free_all_blocks()
         output["ctg"] = elapsed
 
     if enable_cutn:
         print("Running with cutn")
         out, elapsed = run_with_cutn(circuit, pauli_string)
         print("Output cutn", out)
+        # Important: We must free the GPU memory allocation
+        del out
+        mempool.free_all_blocks()
         output["cutn"] = elapsed
 
     # cusv
     if enable_cusv:
         print("Running with cusv")
         elapsed = run_with_cusv(circuit)
+        # Important: We must free the GPU memory allocation
+        mempool.free_all_blocks()
         output["cusv"] = elapsed
 
     if enable_mps:
@@ -283,5 +302,7 @@ def run_multiple_methods(
         else:
             circuit.measure_all()
         elapsed = run_with_mps(circuit)
+        # Important: We must free the GPU memory allocation
+        mempool.free_all_blocks()
         output["mps"] = elapsed
     return output
