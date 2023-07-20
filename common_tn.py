@@ -134,7 +134,7 @@ def run_with_oe(circuit, pauli_string):
     tic = time.time()
     # path, path_info = oe.contract_path(expression, *operands, memory_limit=10e9)
     memory_limit = "max_input"
-    # memory_limit = None
+    memory_limit = None
     if True:
         output = oe.contract(
             expression, *operands, memory_limit=memory_limit

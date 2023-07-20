@@ -21,7 +21,7 @@ def run_exp(exp_name, mps_measure_1qubit=True):
         n_list = [12, 14, 20, 22]
     elif exp_name == "vqe_realamplitudes_linear":
         n_list = [12, 14, 20, 22]
-    elif exp_name == "vqe_QAOA":
+    elif exp_name == "vqe_QAOA_linear":
         n_list = [14, 18, 22, 26, 30]
     elif exp_name == "QPE":
         n_list = [2, 5, 10, 11]
@@ -38,7 +38,7 @@ def run_exp(exp_name, mps_measure_1qubit=True):
             ansatz, qubits = circuits.make_vqe_QAOA_ansatz(
                 num_qubits, entanglement="linear"
             )
-        elif exp_name == "vqe_QAOA":
+        elif exp_name == "vqe_QAOA_linear":
             ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, ansatz_type="TwoLocal")
         elif exp_name == "QPE":
             ansatz = circuits.make_QPE(num_qubits)
@@ -53,8 +53,8 @@ def run_exp(exp_name, mps_measure_1qubit=True):
             index=i,
             enable_cutn=1,
             enable_cusv=0,
-            enable_mps=1,
-            enable_oe=0,
+            enable_mps=0,
+            enable_oe=1,
             mps_measure_1qubit=mps_measure_1qubit,
         )
         for k, v in output.items():
@@ -67,7 +67,7 @@ def run_exp(exp_name, mps_measure_1qubit=True):
 
 # run_exp("vqe_realamplitudes_full", mps_measure_1qubit=1)
 # run_exp("vqe_realamplitudes_linear")
-# run_exp("vqe_QAOA")
+run_exp("vqe_QAOA_linear")
 # run_exp("QPE")
-run_exp("alexeev")
+# run_exp("alexeev")
 cutn.destroy(common_tn.handle)
