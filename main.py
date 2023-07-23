@@ -16,6 +16,7 @@ np.random.seed(42)
 def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
     print("exp", exp_name)
     full_output = defaultdict(list)
+    full_output_memory = defaultdict(list)
     n_list = None
     if exp_name == "vqe_realamplitudes_full":
         n_list = [12, 14, 20, 22]
@@ -39,7 +40,9 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
                 num_qubits, entanglement="linear"
             )
         elif exp_name == "vqe_QAOA_linear":
-            ansatz, qubits = circuits.make_vqe_QAOA_ansatz(num_qubits, ansatz_type="TwoLocal")
+            ansatz, qubits = circuits.make_vqe_QAOA_ansatz(
+                num_qubits, ansatz_type="TwoLocal"
+            )
         elif exp_name == "QPE":
             ansatz = circuits.make_QPE(num_qubits)
             qubits = ansatz.qubits
@@ -47,7 +50,7 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
             ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
         else:
             ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
-        output = common_tn.run_multiple_methods(
+        output, output_memory = common_tn.run_multiple_methods(
             ansatz,
             qubits,
             index=i,
@@ -60,10 +63,13 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
         )
         for k, v in output.items():
             full_output[k].append(v)
+        for k, v in output_memory.items():
+            full_output_memory[k].append(v)
         print()
-    full_output = {"elapsed": dict(full_output)}
+    full_output = {"elapsed": dict(full_output), "memory": dict(full_output_memory)}
     full_output["qubits"] = n_list
     print(full_output)
+
 
 # Don't test this one. Not relevant.
 # run_exp("QPE")
@@ -72,8 +78,8 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
 # run_exp("vqe_realamplitudes_full", mode="expectation_pauli_2")
 # run_exp("vqe_realamplitudes_linear")
 
-#run_exp("vqe_QAOA_linear")
-#run_exp("vqe_QAOA_linear", mode="expectation_pauli_2")
+# run_exp("vqe_QAOA_linear")
+# run_exp("vqe_QAOA_linear", mode="expectation_pauli_2")
 
 run_exp("alexeev")
 cutn.destroy(common_tn.handle)

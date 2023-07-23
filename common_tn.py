@@ -247,11 +247,11 @@ def run_multiple_methods(
     enable_mps=False,
     mps_measure_1qubit=True,
     mode=None,
-    return_value="elapsed",
 ):
     if mode is None:
         mode = "expectation_pauli_1"
     output = {}
+    output_memory = {}
     myconverter = CircuitToEinsum(circuit, backend=cupy)
 
     if mode == "expectation_pauli_1":
@@ -279,7 +279,8 @@ def run_multiple_methods(
         # Important: We must free the GPU memory allocation
         del out
         mempool.free_all_blocks()
-        output["opt_einsum"] = elapsed if return_value == "elapsed" else peak_memory
+        output["opt_einsum"] = elapsed
+        output_memory["opt_einsum"] = peak_memory
 
     if enable_ctg:
         print("Running with ctg")
@@ -290,7 +291,8 @@ def run_multiple_methods(
         # Important: We must free the GPU memory allocation
         del out
         mempool.free_all_blocks()
-        output["ctg"] = elapsed if return_value == "elapsed" else peak_memory
+        output["ctg"] = elapsed
+        output_memory["ctg"] = peak_memory
 
     if enable_cutn:
         print("Running with cutn")
@@ -299,7 +301,8 @@ def run_multiple_methods(
         # Important: We must free the GPU memory allocation
         del out
         mempool.free_all_blocks()
-        output["cutn"] = elapsed if return_value == "elapsed" else peak_memory
+        output["cutn"] = elapsed
+        output_memory["cutn"] = peak_memory
 
     # cusv
     if enable_cusv:
@@ -307,7 +310,8 @@ def run_multiple_methods(
         elapsed, peak_memory = run_with_cusv(circuit)
         # Important: We must free the GPU memory allocation
         mempool.free_all_blocks()
-        output["cusv"] = elapsed if return_value == "elapsed" else peak_memory
+        output["cusv"] = elapsed
+        output_memory["cusv"] = peak_memory
 
     if enable_mps:
         if mps_measure_1qubit:
@@ -319,5 +323,6 @@ def run_multiple_methods(
         elapsed, peak_memory = run_with_mps(circuit)
         # Important: We must free the GPU memory allocation
         mempool.free_all_blocks()
-        output["mps"] = elapsed if return_value == "elapsed" else peak_memory
-    return output
+        output["mps"] = elapsed
+        output_memory["mps"] = peak_memory
+    return output, output_memory
