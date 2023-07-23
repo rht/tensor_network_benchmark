@@ -58,11 +58,10 @@ class MemoryMonitor:
         print("Peak memory usage: {} gigabytes".format(self.peak_memory))
 
 
-def run_with_cutn(circuit, pauli_string):
+def run_with_cutn(circuit, exp_ops):
     # See https://docs.nvidia.com/cuda/cuquantum/latest/python/api/generated/cuquantum.contract_path.html?highlight=contract_path#cuquantum.contract_path
     # https://docs.nvidia.com/cuda/cuquantum/latest/python/api/generated/cuquantum.contract.html#cuquantum.contract
-    myconverter = CircuitToEinsum(circuit, backend=cupy)
-    expression, operands = myconverter.expectation(pauli_string, lightcone=True)
+    expression, operands = exp_ops
     # expression, operands = myconverter.amplitude(bitstring="0" * circuit.num_qubits)
     available_memory = get_cupy_memory()
     print("Available_memory", round(available_memory / 1e9, 3), "GB")
@@ -124,11 +123,10 @@ def run_with_cutn(circuit, pauli_string):
     return output.get(), elapsed
 
 
-def run_with_oe(circuit, pauli_string):
+def run_with_oe(circuit, exp_ops):
     import opt_einsum as oe
 
-    myconverter = CircuitToEinsum(circuit, backend=cupy)
-    expression, operands = myconverter.expectation(pauli_string, lightcone=True)
+    expression, operands = exp_ops
     monitor = MemoryMonitor()
     monitor.start()
     tic = time.time()
@@ -136,12 +134,12 @@ def run_with_oe(circuit, pauli_string):
     memory_limit = "max_input"
     memory_limit = None
     if True:
-        output = oe.contract(
-            expression, *operands, memory_limit=memory_limit
-        )
+        output = oe.contract(expression, *operands, memory_limit=memory_limit)
     else:
         # Separate path finding and contraction
-        path, path_info = oe.contract_path(expression, *operands, memory_limit=memory_limit)
+        path, path_info = oe.contract_path(
+            expression, *operands, memory_limit=memory_limit
+        )
         output = oe.contract(
             expression, *operands, optimize=path, memory_limit=memory_limit
         )
@@ -152,12 +150,11 @@ def run_with_oe(circuit, pauli_string):
     return output, elapsed
 
 
-def run_with_ctg(circuit, pauli_string):
+def run_with_ctg(circuit, exp_ops):
     import opt_einsum as oe
     import cotengra as ctg
 
-    myconverter = CircuitToEinsum(circuit, backend=cupy)
-    expression, operands = myconverter.expectation(pauli_string, lightcone=True)
+    expression, operands = exp_ops
     monitor = MemoryMonitor()
     monitor.start()
     opt = ctg.HyperOptimizer(
@@ -248,18 +245,32 @@ def run_multiple_methods(
     enable_cusv=False,
     enable_mps=False,
     mps_measure_1qubit=True,
+    mode="expectation_pauli_1",
 ):
     output = {}
-    # pauli_string = {qubits[0]: "Z", qubits[1]: "Z"}
-    idx = 10 if len(qubits) > 10 else 0
-    pauli_string = {qubits[idx]: "Z"}
+    myconverter = CircuitToEinsum(circuit, backend=cupy)
+
+    if mode == "expectation_pauli_1":
+        idx = 10 if len(qubits) > 10 else 0
+        pauli_string = {qubits[idx]: "Z"}
+        exp_ops = myconverter.expectation(pauli_string, lightcone=True)
+    elif mode == "expectation_pauli_2":
+        idx = 10 if len(qubits) > 10 else 0
+        pauli_string = {qubits[idx]: "Z", qubits[1]: "Z"}
+        exp_ops = myconverter.expectation(pauli_string, lightcone=True)
+    elif mode == "bitstring_1":
+        # Only 1 bitstring
+        bitstring = "0" * len(qubits)
+        exp_ops = myconverter.amplitude(bitstring=bitstring)
+    else:
+        raise Exception(f"Unknown mode {mode}")
 
     repeat_count = 2 if index == 0 else 1
     if enable_oe:
         print("Running with opt_einsum")
         # Run twice in the beginning to warm the GPU.
         for i in range(repeat_count):
-            out, elapsed = run_with_oe(circuit, pauli_string)
+            out, elapsed = run_with_oe(circuit, exp_ops)
         print("Output opt_einsum", out)
         # Important: We must free the GPU memory allocation
         del out
@@ -270,7 +281,7 @@ def run_multiple_methods(
         print("Running with ctg")
         # Run twice in the beginning to warm the GPU.
         for i in range(repeat_count):
-            out, elapsed = run_with_ctg(circuit, pauli_string)
+            out, elapsed = run_with_ctg(circuit, exp_ops)
         print("Output ctg", out)
         # Important: We must free the GPU memory allocation
         del out
@@ -279,7 +290,7 @@ def run_multiple_methods(
 
     if enable_cutn:
         print("Running with cutn")
-        out, elapsed = run_with_cutn(circuit, pauli_string)
+        out, elapsed = run_with_cutn(circuit, exp_ops)
         print("Output cutn", out)
         # Important: We must free the GPU memory allocation
         del out
