@@ -56,6 +56,7 @@ class MemoryMonitor:
         self.stop_event.set()
         self.monitor_thread.join()
         print("Peak memory usage: {} gigabytes".format(self.peak_memory))
+        return self.peak_memory
 
 
 def run_with_cutn(circuit, exp_ops):
@@ -115,12 +116,12 @@ def run_with_cutn(circuit, exp_ops):
         )
     stop_event.record()
     stop_event.synchronize()
-    monitor.stop()
+    peak_memory = monitor.stop()
     # In seconds
     elapsed = cupy.cuda.get_elapsed_time(start_event, stop_event) / 1e3
     elapsed = round(elapsed, 3)
     print("Elapsed cutn", elapsed)
-    return output.get(), elapsed
+    return output.get(), elapsed, peak_memory
 
 
 def run_with_oe(circuit, exp_ops):
@@ -144,10 +145,10 @@ def run_with_oe(circuit, exp_ops):
             expression, *operands, optimize=path, memory_limit=memory_limit
         )
     elapsed = time.time() - tic
-    monitor.stop()
+    peak_memory = monitor.stop()
     elapsed = round(elapsed, 3)
     print("Elapsed oe", elapsed)
-    return output, elapsed
+    return output, elapsed, peak_memory
 
 
 def run_with_ctg(circuit, exp_ops):
@@ -169,10 +170,10 @@ def run_with_ctg(circuit, exp_ops):
     path, path_info = oe.contract_path(expression, *operands, optimize=opt)
     output = oe.contract(expression, *operands, optimize=path)
     elapsed = time.time() - tic
-    monitor.stop()
+    peak_memory = monitor.stop()
     elapsed = round(elapsed, 3)
     print("Elapsed oe", elapsed)
-    return output, elapsed
+    return output, elapsed, peak_memory
 
 
 from qiskit import transpile
@@ -219,8 +220,8 @@ def run_with_mps(qc):
     run_circuit_mps(qc)
     elapsed = round(time.time() - tic, 3)
     print("Elapsed MPS", elapsed)
-    monitor.stop()
-    return elapsed
+    peak_memory = monitor.stop()
+    return elapsed, peak_memory
 
 
 def run_with_cusv(circuit):
@@ -231,8 +232,8 @@ def run_with_cusv(circuit):
     simulator.simulate(circuit_cirq)
     elapsed = round(time.time() - tic, 3)
     print("Elapsed cusv", elapsed)
-    monitor.stop()
-    return elapsed
+    peak_memory = monitor.stop()
+    return elapsed, peak_memory
 
 
 def run_multiple_methods(
@@ -246,6 +247,7 @@ def run_multiple_methods(
     enable_mps=False,
     mps_measure_1qubit=True,
     mode=None,
+    return_value="elapsed",
 ):
     if mode is None:
         mode = "expectation_pauli_1"
@@ -272,40 +274,40 @@ def run_multiple_methods(
         print("Running with opt_einsum")
         # Run twice in the beginning to warm the GPU.
         for i in range(repeat_count):
-            out, elapsed = run_with_oe(circuit, exp_ops)
+            out, elapsed, peak_memory = run_with_oe(circuit, exp_ops)
         print("Output opt_einsum", out)
         # Important: We must free the GPU memory allocation
         del out
         mempool.free_all_blocks()
-        output["opt_einsum"] = elapsed
+        output["opt_einsum"] = elapsed if return_value == "elapsed" else peak_memory
 
     if enable_ctg:
         print("Running with ctg")
         # Run twice in the beginning to warm the GPU.
         for i in range(repeat_count):
-            out, elapsed = run_with_ctg(circuit, exp_ops)
+            out, elapsed, peak_memory = run_with_ctg(circuit, exp_ops)
         print("Output ctg", out)
         # Important: We must free the GPU memory allocation
         del out
         mempool.free_all_blocks()
-        output["ctg"] = elapsed
+        output["ctg"] = elapsed if return_value == "elapsed" else peak_memory
 
     if enable_cutn:
         print("Running with cutn")
-        out, elapsed = run_with_cutn(circuit, exp_ops)
+        out, elapsed, peak_memory = run_with_cutn(circuit, exp_ops)
         print("Output cutn", out)
         # Important: We must free the GPU memory allocation
         del out
         mempool.free_all_blocks()
-        output["cutn"] = elapsed
+        output["cutn"] = elapsed if return_value == "elapsed" else peak_memory
 
     # cusv
     if enable_cusv:
         print("Running with cusv")
-        elapsed = run_with_cusv(circuit)
+        elapsed, peak_memory = run_with_cusv(circuit)
         # Important: We must free the GPU memory allocation
         mempool.free_all_blocks()
-        output["cusv"] = elapsed
+        output["cusv"] = elapsed if return_value == "elapsed" else peak_memory
 
     if enable_mps:
         if mps_measure_1qubit:
@@ -314,8 +316,8 @@ def run_multiple_methods(
             circuit.measure(idx, 0)
         else:
             circuit.measure_all()
-        elapsed = run_with_mps(circuit)
+        elapsed, peak_memory = run_with_mps(circuit)
         # Important: We must free the GPU memory allocation
         mempool.free_all_blocks()
-        output["mps"] = elapsed
+        output["mps"] = elapsed if return_value == "elapsed" else peak_memory
     return output
