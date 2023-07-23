@@ -24,6 +24,7 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
         n_list = [12, 14, 20, 22]
     elif exp_name == "vqe_QAOA_linear":
         n_list = [14, 18, 22, 26, 30]
+        # n_list = [30, 100, 500, 1000, 5000, 10000]
     elif exp_name == "QPE":
         n_list = [2, 5, 10, 11]
     elif exp_name == "alexeev":
@@ -57,7 +58,7 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
             enable_cutn=1,
             enable_cusv=0,
             enable_mps=0,
-            enable_oe=0,
+            enable_oe=1,
             mps_measure_1qubit=mps_measure_1qubit,
             mode=mode,
         )
@@ -74,12 +75,16 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
 # Don't test this one. Not relevant.
 # run_exp("QPE")
 
-# run_exp("vqe_realamplitudes_full")
-# run_exp("vqe_realamplitudes_full", mode="expectation_pauli_2")
+if 0:
+    run_exp("vqe_realamplitudes_full")
+    # run_exp("vqe_realamplitudes_full", mode="expectation_pauli_2")
+    exit()
 # run_exp("vqe_realamplitudes_linear")
 
-# run_exp("vqe_QAOA_linear")
-# run_exp("vqe_QAOA_linear", mode="expectation_pauli_2")
+if 1:
+    run_exp("vqe_QAOA_linear")
+    # run_exp("vqe_QAOA_linear", mode="expectation_pauli_2")
+    exit()
 
 run_exp("alexeev")
 cutn.destroy(common_tn.handle)
