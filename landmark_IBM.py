@@ -366,9 +366,10 @@ theta_hs = np.concatenate(
 
 if 1:
     full_output = defaultdict(list)
+    full_output_memory = defaultdict(list)
     for i, theta_h in enumerate(theta_hs):
         qc = make_circuit_127(theta_h)
-        output = common_tn.run_multiple_methods(
+        output, output_memory = common_tn.run_multiple_methods(
             qc,
             qc.qubits,
             index=i,
@@ -380,7 +381,9 @@ if 1:
         )
         for k, v in output.items():
             full_output[k].append(v)
-    full_output = {"elapsed": dict(full_output)}
+        for k, v in output_memory.items():
+            full_output_memory[k].append(v)
+    full_output = {"elapsed": dict(full_output), "memory": dict(full_output_memory)}
     full_output["theta_hs"] = theta_hs
     print(full_output)
 
