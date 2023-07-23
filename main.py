@@ -13,7 +13,7 @@ np.random.seed(42)
 # exit()
 
 
-def run_exp(exp_name, mps_measure_1qubit=True):
+def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
     print("exp", exp_name)
     full_output = defaultdict(list)
     n_list = None
@@ -54,8 +54,9 @@ def run_exp(exp_name, mps_measure_1qubit=True):
             enable_cutn=1,
             enable_cusv=0,
             enable_mps=0,
-            enable_oe=1,
+            enable_oe=0,
             mps_measure_1qubit=mps_measure_1qubit,
+            mode=mode,
         )
         for k, v in output.items():
             full_output[k].append(v)
@@ -64,10 +65,15 @@ def run_exp(exp_name, mps_measure_1qubit=True):
     full_output["qubits"] = n_list
     print(full_output)
 
-
-# run_exp("vqe_realamplitudes_full", mps_measure_1qubit=1)
-# run_exp("vqe_realamplitudes_linear")
-run_exp("vqe_QAOA_linear")
+# Don't test this one. Not relevant.
 # run_exp("QPE")
-# run_exp("alexeev")
+
+# run_exp("vqe_realamplitudes_full")
+# run_exp("vqe_realamplitudes_full", mode="expectation_pauli_2")
+# run_exp("vqe_realamplitudes_linear")
+
+#run_exp("vqe_QAOA_linear")
+#run_exp("vqe_QAOA_linear", mode="expectation_pauli_2")
+
+run_exp("alexeev")
 cutn.destroy(common_tn.handle)

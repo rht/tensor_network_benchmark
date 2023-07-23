@@ -245,8 +245,10 @@ def run_multiple_methods(
     enable_cusv=False,
     enable_mps=False,
     mps_measure_1qubit=True,
-    mode="expectation_pauli_1",
+    mode=None,
 ):
+    if mode is None:
+        mode = "expectation_pauli_1"
     output = {}
     myconverter = CircuitToEinsum(circuit, backend=cupy)
 
