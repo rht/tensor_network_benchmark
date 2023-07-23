@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 
 import numpy as np
@@ -7,6 +8,8 @@ import common_tn
 import circuits
 
 np.random.seed(42)
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M:%S')
 
 # import initialize_rqc
 # common_tn.run_multiple_methods(initialize_rqc.qc, initialize_rqc.qc.qubits)
@@ -58,7 +61,7 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
             enable_cutn=1,
             enable_cusv=0,
             enable_mps=0,
-            enable_oe=1,
+            enable_oe=0,
             mps_measure_1qubit=mps_measure_1qubit,
             mode=mode,
         )
@@ -81,7 +84,7 @@ if 0:
     exit()
 # run_exp("vqe_realamplitudes_linear")
 
-if 1:
+if 0:
     run_exp("vqe_QAOA_linear")
     # run_exp("vqe_QAOA_linear", mode="expectation_pauli_2")
     exit()
