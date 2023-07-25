@@ -65,7 +65,7 @@ def run_with_cutn(circuit, exp_ops):
     expression, operands = exp_ops
     # expression, operands = myconverter.amplitude(bitstring="0" * circuit.num_qubits)
     available_memory = get_cupy_memory()
-    print("Available_memory", round(available_memory / 1e9, 3), "GB")
+    print("Available_memory", round(available_memory / (1024**3), 3), "GB")
     options = {
         "handle": handle,
         "blocking": "auto",
