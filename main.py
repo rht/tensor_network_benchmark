@@ -34,6 +34,7 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
         n_list = [22, 24, 30, 32]
     elif exp_name == "zz_featuremap":
         n_list = [10, 15, 20, 25]
+        n_list = [100, 200, 500, 1000]
 
     for i, num_qubits in enumerate(n_list):
         print(num_qubits)
@@ -63,8 +64,8 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
             qubits,
             index=i,
             enable_cutn=1,
-            enable_cusv=1,
-            enable_mps=1,
+            enable_cusv=0,
+            enable_mps=0,
             enable_oe=1,
             mps_measure_1qubit=mps_measure_1qubit,
             mode=mode,
