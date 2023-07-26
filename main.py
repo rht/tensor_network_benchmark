@@ -32,6 +32,8 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
         n_list = [2, 5, 10, 11]
     elif exp_name == "alexeev":
         n_list = [22, 24, 30, 32]
+    elif exp_name == "zz_featuremap":
+        n_list = [10, 15, 20, 25]
 
     for i, num_qubits in enumerate(n_list):
         print(num_qubits)
@@ -54,6 +56,8 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
             ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
         else:
             ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
+        elif exp_name == "zz_featuremap":
+            ansatz, qubits = circuits.make_zz_feature_map(num_qubits)
         output, output_memory = common_tn.run_multiple_methods(
             ansatz,
             qubits,
@@ -87,6 +91,10 @@ if 0:
 if 0:
     run_exp("vqe_QAOA_linear")
     # run_exp("vqe_QAOA_linear", mode="expectation_pauli_2")
+    exit()
+
+if 1:
+    run_exp("zz_featuremap")
     exit()
 
 run_exp("alexeev")

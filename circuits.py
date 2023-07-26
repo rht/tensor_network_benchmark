@@ -2,6 +2,7 @@ import networkx as nx
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import TwoLocal, RealAmplitudes
+from qiskit.circuit.library import ZZFeatureMap
 
 
 def qaoa_ansatz(num_qubits, reps):
@@ -78,3 +79,13 @@ def make_QPE(n):
     A = prepare_A_circuit_for_qiskit(n)
     pe = qcl.PhaseEstimation(n, A)
     return pe
+
+
+def make_zz_feature_map(nqubits):
+    feature_maps_repetition = 5
+    feature_map = ZZFeatureMap(
+        feature_dimension=nqubits,
+        reps=feature_maps_repetition,
+        entanglement="linear",
+    )
+    return feature_map, feature_map.qubits
