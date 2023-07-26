@@ -88,4 +88,5 @@ def make_zz_feature_map(nqubits):
         reps=feature_maps_repetition,
         entanglement="linear",
     )
+    feature_map = feature_map.bind_parameters(np.random.random(feature_map.num_parameters))
     return feature_map, feature_map.qubits
