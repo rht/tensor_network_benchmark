@@ -9,7 +9,7 @@ import circuits
 
 np.random.seed(42)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M:%S')
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M:%S')
 
 # import initialize_rqc
 # common_tn.run_multiple_methods(initialize_rqc.qc, initialize_rqc.qc.qubits)
@@ -54,18 +54,18 @@ def run_exp(exp_name, mps_measure_1qubit=True, mode=None):
             qubits = ansatz.qubits
         elif exp_name == "alexeev":
             ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
-        else:
-            ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
         elif exp_name == "zz_featuremap":
             ansatz, qubits = circuits.make_zz_feature_map(num_qubits)
+        else:
+            ansatz, qubits = circuits.qaoa_ansatz_with_cost_included(num_qubits)
         output, output_memory = common_tn.run_multiple_methods(
             ansatz,
             qubits,
             index=i,
             enable_cutn=1,
-            enable_cusv=0,
-            enable_mps=0,
-            enable_oe=0,
+            enable_cusv=1,
+            enable_mps=1,
+            enable_oe=1,
             mps_measure_1qubit=mps_measure_1qubit,
             mode=mode,
         )
