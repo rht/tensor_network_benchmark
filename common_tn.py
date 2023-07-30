@@ -121,7 +121,9 @@ def run_with_cutn(circuit, exp_ops):
     elapsed = cupy.cuda.get_elapsed_time(start_event, stop_event) / 1e3
     elapsed = round(elapsed, 3)
     print("Elapsed cutn", elapsed)
-    return output.get(), elapsed, peak_memory
+    output_cpu = output.get()
+    del output
+    return output_cpu, elapsed, peak_memory
 
 
 def run_with_oe(circuit, exp_ops):
