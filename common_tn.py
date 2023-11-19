@@ -7,7 +7,7 @@ import qsimcirq
 from cuquantum import cutensornet as cutn
 from cuquantum import contract, contract_path
 from cuquantum import CircuitToEinsum
-from qiskit import QuantumCircuit, ClassicalRegister
+from qiskit import ClassicalRegister
 
 from deqart_internal.circuit_converter import qiskit_to_cirq
 
