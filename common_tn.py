@@ -59,11 +59,10 @@ class MemoryMonitor:
         return self.peak_memory
 
 
-def run_with_cutn(circuit, exp_ops):
+def run_with_cutn(exp_ops):
     # See https://docs.nvidia.com/cuda/cuquantum/latest/python/api/generated/cuquantum.contract_path.html?highlight=contract_path#cuquantum.contract_path
     # https://docs.nvidia.com/cuda/cuquantum/latest/python/api/generated/cuquantum.contract.html#cuquantum.contract
     expression, operands = exp_ops
-    # expression, operands = myconverter.amplitude(bitstring="0" * circuit.num_qubits)
     available_memory = get_cupy_memory()
     print("Available_memory", round(available_memory / (1024**3), 3), "GB")
     options = {
@@ -126,7 +125,7 @@ def run_with_cutn(circuit, exp_ops):
     return output_cpu, elapsed, peak_memory
 
 
-def run_with_oe(circuit, exp_ops):
+def run_with_oe(exp_ops):
     import opt_einsum as oe
 
     expression, operands = exp_ops
@@ -153,7 +152,7 @@ def run_with_oe(circuit, exp_ops):
     return output, elapsed, peak_memory
 
 
-def run_with_ctg(circuit, exp_ops):
+def run_with_ctg(exp_ops):
     import opt_einsum as oe
     import cotengra as ctg
 
@@ -276,7 +275,7 @@ def run_multiple_methods(
         print("Running with opt_einsum")
         # Run twice in the beginning to warm the GPU.
         for i in range(repeat_count):
-            out, elapsed, peak_memory = run_with_oe(circuit, exp_ops)
+            out, elapsed, peak_memory = run_with_oe(exp_ops)
         print("Output opt_einsum", out)
         # Important: We must free the GPU memory allocation
         del out
@@ -288,7 +287,7 @@ def run_multiple_methods(
         print("Running with ctg")
         # Run twice in the beginning to warm the GPU.
         for i in range(repeat_count):
-            out, elapsed, peak_memory = run_with_ctg(circuit, exp_ops)
+            out, elapsed, peak_memory = run_with_ctg(exp_ops)
         print("Output ctg", out)
         # Important: We must free the GPU memory allocation
         del out
@@ -298,7 +297,7 @@ def run_multiple_methods(
 
     if enable_cutn:
         print("Running with cutn")
-        out, elapsed, peak_memory = run_with_cutn(circuit, exp_ops)
+        out, elapsed, peak_memory = run_with_cutn(exp_ops)
         print("Output cutn", out)
         # Important: We must free the GPU memory allocation
         del out
